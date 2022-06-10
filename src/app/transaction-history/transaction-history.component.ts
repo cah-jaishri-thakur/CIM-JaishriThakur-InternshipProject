@@ -4,11 +4,7 @@ import {Transactions} from "../transactions";
 
 @Component({
   selector: 'app-transaction-history',
-  templateUrl:`
-    <div class="transactionH">
-      <app-result [from]="'transactionH'" [jsonData]="jsonDataResult"></app-result>
-    </div>
-  `,
+  templateUrl:'./transaction-history.component.html',
   styleUrls: ['./transaction-history.component.css']
 })
 export class TransactionHistoryComponent implements OnInit {
@@ -20,6 +16,7 @@ export class TransactionHistoryComponent implements OnInit {
     this.Http.get('../../assets/json/8242_100_txns.json', {responseType : 'text'})
       .subscribe( resp => {
         this.jsonDataResult = JSON.parse(resp);
+        console.log(this.jsonDataResult);
       })
     console.log('--- First Way of jsonDataResult :: ', this.jsonDataResult);
   }
