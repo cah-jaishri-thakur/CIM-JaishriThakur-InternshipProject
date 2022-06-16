@@ -1,0 +1,26 @@
+<div class="result">
+  <fieldset *ngIf="jsonData" [ngStyle]="{'background-color': getBgColor()}">
+    <legend class="result__title">
+      <span class="result__from-text">{{from}} :</span>
+    </legend>
+
+    <table>
+      <thead>
+      <tr>
+        <th> CIN</th>
+        <th>AccountNumber</th>
+        <th>Quantity</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let t of jsonData">
+        <td>{{ t.CIN }}</td>
+        <td>{{ t.ACCOUNT_NBR }}</td>
+        <td>{{ t.QUANTITY }}</td>
+      </tr>
+      </tbody>
+    </table>
+
+  </fieldset>
+</div>
+

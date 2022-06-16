@@ -1,7 +1,7 @@
-import { Component, OnInit, AfterViewInit, ViewChild,ElementRef } from '@angular/core';
-import { Chart, Point, LineController, LineElement, PointElement, LinearScale, Title } from 'chart.js';
+import { Component, Input, AfterViewInit, ViewChild,ElementRef } from '@angular/core';
+import { Chart, Point, registerables} from 'chart.js';
 
-import {CategoryScale} from 'chart.js';
+
 
 @Component({
   selector: 'app-line-chart',
@@ -9,19 +9,23 @@ import {CategoryScale} from 'chart.js';
   styleUrls: ['./line-chart.component.css']
 })
 export class LineChartComponent implements AfterViewInit  {
-  @ViewChild('chart')
-  private chartRef!: ElementRef;
-  private chart!: Chart;
-  private data: Point[];
+  chart: Chart | undefined;
+  data: Point[];
+  jsonFile = './assets/json/Untitled.json';
   constructor() {
     this.data = [{x: 1, y: 5}, {x: 2, y: 10}, {x: 3, y: 6}, {x: 4, y: 2}, {x: 4.1, y: 6}];
   }
 
+
   ngOnInit(): void {
+    this.createChart();
   }
   ngAfterViewInit(): void {
-    Chart.register(LinearScale, Title);
-    this.chart = new Chart(this.chartRef.nativeElement, {
+
+  }
+  createChart(){
+    Chart.register(...registerables);
+    this.chart = new Chart(document.getElementById('chart') as  HTMLCanvasElement ,{
       type: 'line',
       data: {
         datasets: [{
@@ -34,10 +38,13 @@ export class LineChartComponent implements AfterViewInit  {
         responsive: false,
         scales: {
           x: {
-            ticks: {
               display: true,
-            }
+              type: 'linear',
           },
+          y: {
+              display: true,
+             type: 'linear',
+            },
         }
       }
     });
