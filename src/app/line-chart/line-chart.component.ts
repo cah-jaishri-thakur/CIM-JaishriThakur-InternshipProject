@@ -1,6 +1,8 @@
 import { Component, Input, AfterViewInit, ViewChild,ElementRef } from '@angular/core';
-import { Chart, Point, registerables} from 'chart.js';
-
+import { Chart, registerables} from 'chart.js';
+import {HttpClient} from "@angular/common/http";
+import {Transactions} from "../transactions";
+import {Axes} from "../axes";
 
 
 @Component({
@@ -8,42 +10,95 @@ import { Chart, Point, registerables} from 'chart.js';
   templateUrl: './line-chart.component.html',
   styleUrls: ['./line-chart.component.css']
 })
+// this.Http.get('../../assets/json/Untitled.json', {responseType : 'text'})
+//   .subscribe( resp => {
+//     this.jsonDataResult = JSON.parse(resp);
+//     console.log(this.jsonDataResult);
+//   })
 export class LineChartComponent implements AfterViewInit  {
-  chart: Chart | undefined;
-  data: Point[];
+  @Input() jsonData : any;
+  chart!: Chart ;
+  data : any [];
+  jsonDataResult: Transactions [] = [];
   jsonFile = './assets/json/Untitled.json';
-  constructor() {
-    this.data = [{x: 1, y: 5}, {x: 2, y: 10}, {x: 3, y: 6}, {x: 4, y: 2}, {x: 4.1, y: 6}];
+  constructor(private Http: HttpClient) {
+    this.data = [];
   }
 
 
+
   ngOnInit(): void {
+    this.populateAxes();
     this.createChart();
   }
   ngAfterViewInit(): void {
 
+  }
+  populateAxes(){
+    const dates : any []= [];
+    const quantity : any [] = [];
+    this.Http.get('../../assets/json/Untitled.json', {responseType : 'text'})
+   .subscribe( resp => {
+     this.jsonDataResult = JSON.parse(resp);
+     this.jsonDataResult.forEach(result => {
+       var date = result.TRANSACTION_DATE.substring(5,7);
+       var dateInt = parseInt(date);
+       dates.push(date);
+       quantity.push(result.QUANTITY);
+     })
+     this.chart.data.labels = dates;
+     this.chart.data.datasets[0].data = quantity;
+     this.chart.update();
+   })
   }
   createChart(){
     Chart.register(...registerables);
     this.chart = new Chart(document.getElementById('chart') as  HTMLCanvasElement ,{
       type: 'line',
       data: {
+        labels: [],
         datasets: [{
           label: 'Interesting Data',
-          data: this.data,
+          data: [],
           fill: false
         }]
       },
       options: {
+        plugins:{
+          title:{
+            display: true,
+            text: 'Chart Title',
+          }
+        },
         responsive: false,
         scales: {
           x: {
               display: true,
               type: 'linear',
+            title: {
+              display: true,
+              text: 'date',
+              font: {
+                family: 'times new roman',
+                size: 10,
+                weight: 'bold',
+                lineHeight: 1.2,
+              },
+            }
           },
           y: {
               display: true,
              type: 'linear',
+            title: {
+              display: true,
+              text: 'quantity',
+              font: {
+                family: 'times new roman',
+                size: 10,
+                weight: 'bold',
+                lineHeight: 1.2,
+              },
+            }
             },
         }
       }
