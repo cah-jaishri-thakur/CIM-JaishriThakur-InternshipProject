@@ -13,7 +13,7 @@ export class TransactionHistoryComponent implements OnInit {
   constructor(private Http: HttpClient) {}
 
   ngOnInit(): void {
-    this.Http.get('../../assets/json/Untitled.json', {responseType : 'text'})
+    this.Http.get('../../assets/json/jaishri_data_minmax.json', {responseType : 'text'})
       .subscribe( resp => {
         this.jsonDataResult = JSON.parse(resp);
         console.log(this.jsonDataResult);

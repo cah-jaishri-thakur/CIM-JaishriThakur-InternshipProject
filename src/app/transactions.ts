@@ -1,6 +1,9 @@
 export interface Transactions {
-  CIN: Number;
-  ACCOUNT_NBR: Number;
-  QUANTITY: Number;
-  TRANSACTION_DATE: string;
+  cin: Number;
+  account_nbr: Number;
+  quantity: Number;
+  transaction_date: string;
+  transaction_type: number;
+  max_qty: number;
+  MIN_QTY: number;
 }
