@@ -4,6 +4,7 @@ import {HttpClient} from "@angular/common/http";
 import {Transactions} from "../transactions";
 import 'chartjs-adapter-moment';
 import {Axes} from "../axes";
+import {Transaction} from "../model/transaction";
 
 
 @Component({
@@ -11,17 +12,20 @@ import {Axes} from "../axes";
   templateUrl: './line-chart.component.html',
   styleUrls: ['./line-chart.component.css']
 })
-// this.Http.get('../../assets/json/Untitled.json', {responseType : 'text'})
-//   .subscribe( resp => {
-//     this.jsonDataResult = JSON.parse(resp);
-//     console.log(this.jsonDataResult);
-//   })
 export class LineChartComponent implements AfterViewInit  {
   @Input() jsonData : any;
   chart!: Chart ;
   data : any [];
   jsonDataResult: Transactions [] = [];
   jsonFile = './assets/json/jaishri_data_minmax.json';
+
+  TRANSACTION_DATE = 'transaction_date';
+  TRANSACTION_TYPE = 'transaction_type';
+  QUANTITY = 'quantity';
+  MIN_QUANTITY = 'MIN_QTY';
+  MAX_QUANTITY = 'max_qty';
+  transactions: Transaction[] = [];
+
   changeQuantityArray : any[] =[];
    dates : any []= [];
    Dispensequantity : any [] = [];
@@ -36,16 +40,15 @@ export class LineChartComponent implements AfterViewInit  {
 
 
   ngOnInit(): void {
+    this.populateDataset();
     this.createChart();
     //this.changeInQuantity();
     this.populateAxes();
     this.changeInQuantity2();
     //this.changeInQuantity();
   }
-  ngAfterViewInit(): void {
 
-  }
-  differentTransactionTypes(transType : number){
+  getTransactionType(transType : number){
     if(transType === 1){
       return 'Dispense';
     }else if(transType === 0){
@@ -55,6 +58,25 @@ export class LineChartComponent implements AfterViewInit  {
     }else{
       return 'other';
     }
+  }
+  sortTransactions(transactions: Transaction[]): Transaction[] {
+    return transactions.sort((a, b) => a.transaction_date.getTime() - b.transaction_date.getTime());
+  }
+
+  populateDataset() {
+    this.Http.get('../../assets/json/jaishri_data_minmax.json', {responseType: 'text'})
+      .subscribe( resp => {
+        let result: [] = JSON.parse(resp);
+        result.forEach(r => this.transactions.push(new Transaction(
+          this.getTransactionType(r[this.TRANSACTION_TYPE]),
+          new Date(r[this.TRANSACTION_DATE]),
+          r[this.QUANTITY],
+          r[this.MIN_QUANTITY],
+          r[this.MAX_QUANTITY]))
+        );
+        this.transactions = this.sortTransactions(this.transactions);
+        this.createChart();
+      });
   }
 
   changeInQuantity2(){ // put transaction date & quantity in hashmap and plot backwards
@@ -190,69 +212,40 @@ export class LineChartComponent implements AfterViewInit  {
       type: 'line',
       data: {
         labels: [],
-        datasets: [{
-          label: 'Dispense',
-          data: [],
-          fill: false,
-
-        },
-         {
-          label: 'Reversal',
-          data: [],
-          fill: false,
-           backgroundColor:'#4dc9f6',
-           showLine: true,
-        },
+        datasets: [
           {
-            label: 'Invoices',
-            data: [],
+            data: JSON.parse(JSON.stringify(this.transactions)),
             fill: false,
-            backgroundColor:'#00a950',
-
-          },
-          {
-            label: 'Max',
-            data: [],
-            fill: false,
-            borderColor:'#acc236',
-            backgroundColor:'#acc236',
-          },
-          {
-            label: 'Min',
-            data: [],
-            fill: false,
-            borderColor:'#f67019',
-            backgroundColor:'#f67019',
-          },
-          {
-            label: 'OnHand',
-            data: [],
-            fill: false,
-            borderColor:'#1aafa2',
-            backgroundColor:'#1aafa2',
-          }]
+            parsing: {
+              xAxisKey: this.TRANSACTION_DATE,
+              yAxisKey: this.QUANTITY
+            }
+          }
+        ]
       },
       options: {
         plugins:{
-          tooltip: {
-            callbacks: {
-              label: function (tooltipItem: any) {
-                console.log(tooltipItem)
-                return tooltipItem
-              }
-            }
-          },
           title:{
             display: true,
-            text: 'Chart Title',
+            text: 'Inventory Remaining Purchases'
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                let transaction = context.raw as Transaction;
+                return transaction.transaction_type + ' - ' + transaction.quantity;
+              }
+            }
           }
         },
         responsive: false,
         scales: {
           x: {
               display: true,
-              //reverse: true,
-
+            type: 'time',
+            time: {
+              unit: 'month'
+            },
             title: {
               display: true,
               text: 'date',
