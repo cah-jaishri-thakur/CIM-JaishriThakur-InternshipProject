@@ -18,9 +18,7 @@ export class LineChartComponent {
   dates: any [] = [];
   finalDataSet: any[] = [];
 
-  constructor(private Http: HttpClient) {
-  }
-
+  constructor(private Http: HttpClient) {}
 
   ngOnInit(): void {
     this.initializeChart();
@@ -46,7 +44,6 @@ export class LineChartComponent {
           this.finalDataSet.push(obj);
           currentOnHand = this.calculateCurrentOnHand(currentOnHand, result.quantity, result.transaction_type, result.mif_package_qty)
         });
-
         this.createChart();
         this.chart.data.datasets[0].data = this.finalDataSet.reverse();
         this.chart.update();
@@ -119,7 +116,7 @@ export class LineChartComponent {
             callbacks: {
               label: function (context) {
                 let transaction = context.raw as DataPoint;
-                if (transaction.transactionType === 'Invoice') {
+                if (transaction.transactionType.includes('Invoice')) {
                   let metricQty = transaction.quantity * transaction.pkgQty
                   return 'Invoice: ' + transaction.quantity + 'X' + transaction.pkgQty + ', On Hand: ' + transaction.y
                 }
