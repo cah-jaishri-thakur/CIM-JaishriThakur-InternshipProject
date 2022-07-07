@@ -113,7 +113,7 @@ export class LineChartComponent {
         plugins: {
           title: {
             display: true,
-            text: 'Inventory Remaining Purchases'
+            text: 'Inventory History for ' + this.data[0].brand_description
           },
           tooltip: {
             callbacks: {

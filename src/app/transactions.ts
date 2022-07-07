@@ -8,4 +8,5 @@ export interface Transactions {
   MIN_QTY: number;
   mif_package_qty: number;
   on_hand: number;
+  brand_description: string;
 }
