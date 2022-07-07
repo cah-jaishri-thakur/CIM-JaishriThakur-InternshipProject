@@ -37,13 +37,14 @@ export class LineChartComponent {
           let obj =
             {
               x: result.transaction_date,
-              y: this.calculateCurrentOnHand(currentOnHand, result.quantity, result.transaction_type, result.mif_package_qty),
+              y: currentOnHand,
               transactionDate: result.transaction_date,
               transactionType: this.getTransactionType(result.transaction_type),
               quantity: result.quantity,
               pkgQty: result.mif_package_qty
             };
           this.finalDataSet.push(obj);
+          currentOnHand = this.calculateCurrentOnHand(currentOnHand, result.quantity, result.transaction_type, result.mif_package_qty)
         });
 
         this.createChart();
