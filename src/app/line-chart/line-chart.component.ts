@@ -51,11 +51,7 @@ export class LineChartComponent  {
   }
 
   changeInQuantity2(){ // put transaction date & quantity in hashmap and plot backwards
-    // Todo Step 1: Create an object array that takes in the transaction_type, quantity, and date X
-    //      Step 2: Sort the array according the date in descending order
-    //      Step 3: Put it through a for loop and adding conditional statements to figure out the transaction types
-    //      Step 4: Based of the transaction type, increment or decrement onHand value and push into an array
-    //      Step 5: Reverse the array so it will plot the points accordingly
+
     var currentOnHand = 274;
     const invoiceQuant : any [] = [];
 
@@ -119,67 +115,66 @@ export class LineChartComponent  {
       })
   }
 
+
   createChart(){
     Chart.register(...registerables);
-    this.chart = new Chart(document.getElementById('chart') as  HTMLCanvasElement ,{
+    this.chart = new Chart(document.getElementById('chart') as  HTMLCanvasElement , {
       type: 'line',
       data: {
         labels: [],
         datasets: [
           {
-            label:'Current On Hand',
+            label: 'Adjusted on Hand',
             data: [],
             fill: false,
             pointBackgroundColor: this.colorChange,
-            borderColor:'#9E9A72',
+            borderColor: '#9E9A72',
           },
           {
-            label:'Max Value',
-            data:[],
+            label: 'Max Value',
+            data: [],
             fill: false,
-            borderColor:'#acc236',
+            borderColor: '#acc236',
             backgroundColor: '#acc236',
           },
           {
-            label:'Min Value',
-            data:[],
+            label: 'Min Value',
+            data: [],
             fill: false,
-            borderColor:'#f67019',
-            backgroundColor:'#f67019',
-          },
-         /* {
-            label:'Dispense',
-            data:[],
-            borderColor:'#ACEEAC',
-            backgroundColor:'#ACEEAC',
+            borderColor: '#f67019',
+            backgroundColor: '#f67019',
           },
           {
-            label:'Reversal',
-            data:[],
-            borderColor:'#1023FE',
-            backgroundColor:'#1023FE',
+            label: 'Dispense',
+            data: [],
+            borderColor: '#ACEEAC',
+            backgroundColor: '#ACEEAC',
           },
           {
-            label:'Invoice',
-            data:[],
-            borderColor:'#F3F3B8',
-            backgroundColor:'#F3F3B8',
-          }*/
+            label: 'Reversal',
+            data: [],
+            borderColor: '#1023FE',
+            backgroundColor: '#1023FE',
+          },
+          {
+            label: 'Invoice',
+            data: [],
+            borderColor: '#F3F3B8',
+            backgroundColor: '#F3F3B8',
+          }
         ]
       },
       options: {
         responsive: false,
         plugins: {
+          legend:{
+            labels:{
+              usePointStyle: true,
+              pointStyle:'line',
+            }
+          },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                var index : string = context.dataIndex.toString();
-                var x = context.dataset.pointBackgroundColor?[index];
-                if(context.dataset.pointBackgroundColor && x === '#ACEEAC'){
-
-                  return 'Dispense';
-                }
-              },
             },
           },
         },
