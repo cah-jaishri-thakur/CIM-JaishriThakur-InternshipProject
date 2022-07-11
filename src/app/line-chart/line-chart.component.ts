@@ -44,9 +44,15 @@ export class LineChartComponent {
           var transObj : ChartTransaction= { x:result.transaction_date, y:onHandVal, type: result.transaction_type, packageQuant:result.mif_package_qty, transactionQuant: result.quantity};
           onHandVal = this.quantityChange(onHandVal, result.mif_package_qty, result.transaction_type, result.quantity);
           this.finalQuant.push(transObj);
+          var max = {x:result.transaction_date, y:result.max_qty};
+          var min = {x:result.transaction_date, y:result.MIN_QTY};
+          this.maxQuantity.push(max);
+          this.minQuantity.push(min);
         })
         this.createChart();
         this.chart.data.datasets[0].data = this.finalQuant.reverse();
+        this.chart.data.datasets[1].data = this.maxQuantity;
+        this.chart.data.datasets[2].data = this.minQuantity;
         this.chart.update();
 
 
