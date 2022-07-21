@@ -1,9 +1,11 @@
-import { Component, Input, AfterViewInit, ViewChild,ElementRef } from '@angular/core';
-import { Chart, registerables} from 'chart.js';
+import {Component, Input, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
+import {Chart, registerables} from 'chart.js';
 import {HttpClient} from "@angular/common/http";
 import {Transactions} from "../transactions";
 import 'chartjs-adapter-moment';
 import {Axes} from "../axes";
+import {TooltipItem} from 'chart.js';
+import {ChartTransaction} from "../model/chartTransaction";
 
 
 @Component({
@@ -11,149 +13,192 @@ import {Axes} from "../axes";
   templateUrl: './line-chart.component.html',
   styleUrls: ['./line-chart.component.css']
 })
-// this.Http.get('../../assets/json/Untitled.json', {responseType : 'text'})
-//   .subscribe( resp => {
-//     this.jsonDataResult = JSON.parse(resp);
-//     console.log(this.jsonDataResult);
-//   })
-export class LineChartComponent implements AfterViewInit  {
-  @Input() jsonData : any;
-  chart!: Chart ;
-  data : any [];
+export class LineChartComponent {
+  chart!: Chart;
   jsonDataResult: Transactions [] = [];
-  jsonFile = './assets/json/jaishri_data_minmax.json';
+
+  maxQuantity: any [] = [];
+  minQuantity: any [] = [];
+  finalQuant: any [] = [];
+
   constructor(private Http: HttpClient) {
-    this.data = [];
+
   }
-
-
 
   ngOnInit(): void {
-    this.createChart();
-    this.populateAxes();
+    this.intializeData();
   }
-  ngAfterViewInit(): void {
 
+  intializeData() {
+
+    this.Http.get('../../assets/json/jaishri_data_minmax.json', {responseType: 'text'})
+      .subscribe(resp => {
+        this.jsonDataResult = JSON.parse(resp);
+        var onHandVal = this.jsonDataResult[0].on_hand;
+        this.jsonDataResult.sort((a,b) => {
+          var datesA = new Date(a.transaction_date).valueOf();
+          var dateB = new Date(b.transaction_date).valueOf();
+          return dateB - datesA;
+        });
+        this.jsonDataResult.forEach(result => {
+          var transObj : ChartTransaction= { x:result.transaction_date, y:onHandVal, type: result.transaction_type, packageQuant:result.mif_package_qty, transactionQuant: result.quantity};
+          onHandVal = this.quantityChange(onHandVal, result.mif_package_qty, result.transaction_type, result.quantity);
+          this.finalQuant.push(transObj);
+          var max = {x:result.transaction_date, y:result.max_qty};
+          var min = {x:result.transaction_date, y:result.MIN_QTY};
+          this.maxQuantity.push(max);
+          this.minQuantity.push(min);
+        })
+        this.createChart();
+        this.chart.data.datasets[0].data = this.finalQuant.reverse();
+        this.chart.data.datasets[1].data = this.maxQuantity;
+        this.chart.data.datasets[2].data = this.minQuantity;
+        this.chart.update();
+
+
+      })
   }
-  differentTransactionTypes(transType : number){
-    if(transType === 1){
-      return 'Dispense';
-    }else if(transType === 0){
-      return 'Invoices';
-    }else if(transType === 3){
-      return 'Reversals';
-    }else{
-      return 'other';
+
+  quantityChange(onHand: number, package_quant: number, type: number,quantity: number ){
+    switch (type){
+      case 0:
+        return onHand -= quantity * package_quant;
+        break;
+      case 1:
+        return onHand += quantity;
+        break;
+      case 3:
+        return onHand -= quantity;
+        break;
+      default:
+        return onHand;
     }
   }
-  populateAxes(){
-    const Dispensedates : any []= [];
-    const Dispensequantity : any [] = [];
-    const Reversaldates : any []= [];
-    const Reversalquantity : any [] = [];
-    const Invoicedates : any [] = [];
-    const Invoicequantity : any [] = [];
-    const transTypes : any [] = [];
-    let dispenses : any [] = [];
-    let reversals : any [] = [];
-    let invoices : any [] = [];
-    const maxQuantity: any [] = [];
-    const minQuantity: any [] = [];
-    this.Http.get('../../assets/json/jaishri_data_minmax.json', {responseType : 'text'})
-   .subscribe( resp => {
-     this.jsonDataResult = JSON.parse(resp);
-     dispenses = this.jsonDataResult.filter((t)=>t.transaction_type === 1);
-     reversals = this.jsonDataResult.filter((t)=>t.transaction_type === 3);
-     invoices = this.jsonDataResult.filter((t)=>t.transaction_type === 0);
-     reversals.forEach(result=> {
-       let transTypeString = this.differentTransactionTypes(result.transaction_type);
-       var date = result.transaction_date;
-       Reversaldates.push(date);
-       Reversalquantity.push(result.quantity);
-       maxQuantity.push(result.max_qty);
-       minQuantity.push(result.MIN_QTY);
-       transTypes.push(transTypeString);
-     })
-     dispenses.forEach(result => {
-       let transTypeString = this.differentTransactionTypes(result.transaction_type);
-       var date = result.transaction_date;
-       Dispensedates.push(date);
-       Dispensequantity.push(result.quantity);
-       maxQuantity.push(result.max_qty);
-       minQuantity.push(result.MIN_QTY);
-       transTypes.push(transTypeString);
-     })
-     invoices.forEach(result => {
-       let transTypeString = this.differentTransactionTypes(result.transaction_type);
-       var date = result.transaction_date;
-       Invoicedates.push(date);
-       Invoicequantity.push(result.quantity);
-       maxQuantity.push(result.max_qty);
-       minQuantity.push(result.MIN_QTY);
-       transTypes.push(transTypeString);
-     })
 
-     this.chart.data.labels = Dispensedates;
-     this.chart.data.datasets[0].data = Dispensequantity;
-     this.chart.data.datasets[1].data = Reversalquantity;
-     this.chart.data.datasets[2].data = Invoicequantity;
-     this.chart.data.datasets[3].data = maxQuantity;
-     this.chart.data.datasets[4].data = minQuantity;
-     //this.chart.data.datasets[0].label = transTypes;
-     this.chart.update();
-   })
-  }
-  createChart(){
+  createChart() {
     Chart.register(...registerables);
-    this.chart = new Chart(document.getElementById('chart') as  HTMLCanvasElement ,{
+    this.chart = new Chart(document.getElementById('chart') as HTMLCanvasElement, {
       type: 'line',
       data: {
         labels: [],
-        datasets: [{
-          label: 'Dispense',
-          data: [],
-          fill: false
-        },
-         {
-          label: 'Reversal',
-          data: [],
-          fill: false,
-           backgroundColor:'#4dc9f6',
-        },
+        datasets: [
           {
-            label: 'Invoices',
+            label: 'Adjusted On hand',
             data: [],
             fill: false,
-            backgroundColor:'#00a950',
+            pointBackgroundColor: function (context) {
+              var x = context.raw as ChartTransaction;
+              if(x){
+                if(x.type === 1){
+                  return '#ACEEAC';
+                }
+                else if(x.type === 0){
+                  return '#1023FE';
+                }
+                else if(x.type === 3){
+                  return '#F3F3B8';
+                }
+                else{
+                  return 'red';
+                }
+              }
+              else{
+                return 'black';
+              }
+              },
+            borderColor: '#A96EAE',
           },
           {
-            label: 'Max',
+            label: 'Max Value',
             data: [],
             fill: false,
-            backgroundColor:'#acc236',
+            borderColor: '#acc236',
+            backgroundColor: '#acc236',
+            pointStyle: 'line',
           },
           {
-            label: 'Min',
+            label: 'Min Value',
             data: [],
             fill: false,
-            backgroundColor:'#f67019',
-          }]
+            borderColor: '#f67019',
+            backgroundColor: '#f67019',
+            pointStyle: 'line',
+          },
+          {
+            label: 'Dispense',
+            data: [],
+            borderColor: '#ACEEAC',
+            backgroundColor: '#ACEEAC',
+            pointStyle: 'circle',
+          },
+          {
+            label: 'Invoice',
+            data: [],
+            borderColor: '#1023FE',
+            backgroundColor: '#1023FE',
+            pointStyle: 'circle',
+          },
+          {
+            label: 'Reversal',
+            data: [],
+            borderColor: '#F3F3B8',
+            backgroundColor: '#F3F3B8',
+            pointStyle: 'circle',
+          },
+          {
+            label: 'Adjusted OnHand',
+            data: [],
+            borderColor: '#A96EAE',
+            backgroundColor: '#A96EAE',
+            pointStyle: 'line',
+          }
+        ]
       },
       options: {
-        plugins:{
-          title:{
-            display: true,
-            text: 'Chart Title',
-          }
-        },
         responsive: false,
+        plugins: {
+          legend: {
+            labels: {
+              usePointStyle: true,
+              filter: function (legendItem, chartData) {
+                if(chartData.datasets[legendItem.datasetIndex].label === 'Adjusted On hand'){
+                  return false;
+                }else{
+                  return true;
+                }
+               // return !!(chartData.datasets[legendItem.datasetIndex].label)
+              },
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label:function (context){
+                var x = context.raw as ChartTransaction;
+                if(x){
+                  if(x.type === 1){
+                    return 'Dispense ' +x.transactionQuant + ' Adjusted OnHand: ' + x.y;
+                  }
+                  else if(x.type === 0){
+                    return 'Invoice ' + x.transactionQuant*x.packageQuant + ' Adjusted OnHand: ' + x.y;
+                  }
+                  else if(x.type === 3){
+                    return 'Reversal ' + x.transactionQuant + ' Adjusted OnHand: ' + x.y;
+                  }
+                  else{
+                    return ' ';
+                  }
+                }
+                else{
+                  return ' ';
+                }
+              },
+            },
+          },
+        },
         scales: {
           x: {
-              display: true,
+            display: true,
             type: 'time',
-            time: {
-              unit: 'month'
-            },
             title: {
               display: true,
               text: 'date',
@@ -166,8 +211,8 @@ export class LineChartComponent implements AfterViewInit  {
             }
           },
           y: {
-              display: true,
-             type: 'linear',
+            display: true,
+            type: 'linear',
             title: {
               display: true,
               text: 'quantity',
@@ -178,10 +223,11 @@ export class LineChartComponent implements AfterViewInit  {
                 lineHeight: 1.2,
               },
             }
-            },
+          },
         }
       }
     });
   }
-
 }
+
+

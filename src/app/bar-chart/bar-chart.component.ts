@@ -30,6 +30,10 @@ export class BarChartComponent implements OnInit {
     const transTypes : any [] = [];
     let dispenses : any [] = [];
     let reversals : any [] = [];
+    const maxQuantity: any [] = [];
+    const minQuantity: any [] = [];
+    var dispenseTotal : number;
+    const dispenseTotalArray : any [] = [];
     this.Http.get('../../assets/json/jaishri_data_minmax.json', {responseType : 'text'})
       .subscribe( resp => {
         this.jsonDataResult = JSON.parse(resp);
@@ -37,22 +41,28 @@ export class BarChartComponent implements OnInit {
         reversals = this.jsonDataResult.filter((t)=>t.transaction_type === 3);
         reversals.forEach(result=> {
           //let transTypeString = this.differentTransactionTypes(result.TRANSACTION_TYPE);
-          var date = result.transaction_date;
+          var date = result.transaction_date.substring(0,10);
           Reversaldates.push(date);
           Reversalquantity.push(result.quantity);
+          maxQuantity.push(result.max_qty);
+          minQuantity.push(result.MIN_QTY);
           //transTypes.push(transTypeString);
         })
         dispenses.forEach(result => {
           //let transTypeString = this.differentTransactionTypes(result.TRANSACTION_TYPE);
-          var date = result.transaction_date;
+          var date = result.transaction_date.substring(0,10);
           Dispensedates.push(date);
           Dispensequantity.push(result.quantity);
+          maxQuantity.push(result.max_qty);
+          minQuantity.push(result.MIN_QTY);
           //transTypes.push(transTypeString);
         })
 
         this.chart.data.labels = Dispensedates;
         this.chart.data.datasets[0].data = Dispensequantity;
         this.chart.data.datasets[1].data = Reversalquantity;
+        this.chart.data.datasets[2].data = maxQuantity;
+        this.chart.data.datasets[3].data = minQuantity;
         //this.chart.data.datasets[0].label = transTypes;
         this.chart.update();
       })
@@ -73,6 +83,22 @@ export class BarChartComponent implements OnInit {
             data: [],
             //fill: false,
             backgroundColor:'#4dc9f6',
+          },
+          {
+            label: 'Max',
+            data: [],
+            type: 'line',
+            //fill: false,
+            borderColor:'#acc236',
+            backgroundColor: '#acc236',
+          },
+          {
+            label: 'Min',
+            data: [],
+            type: 'line',
+            //fill: false,
+            borderColor:'#f67019',
+            backgroundColor:'#f67019',
           }]
       },
       options: {
@@ -86,13 +112,10 @@ export class BarChartComponent implements OnInit {
         scales: {
           x: {
             display: true,
-            type: 'time',
-            time: {
-              unit: 'month'
-            },
+            reverse: true,
             title: {
               display: true,
-              text: 'date',
+              text: 'Type of Transactions',
               font: {
                 family: 'times new roman',
                 size: 10,
