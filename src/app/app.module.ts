@@ -9,13 +9,14 @@ import { ResultComponent } from './result/result.component';
 import { AppRoutingModule } from './app-routing.module';
 import { BarChartComponent } from './bar-chart/bar-chart.component';
 
+
 @NgModule({
   declarations: [
     AppComponent,
     TransactionHistoryComponent,
     LineChartComponent,
     ResultComponent,
-    BarChartComponent
+    BarChartComponent,
   ],
   imports: [
     BrowserModule,

@@ -3,15 +3,18 @@ import {Chart, registerables} from 'chart.js';
 import {HttpClient} from "@angular/common/http";
 import {Transactions} from "../transactions";
 import 'chartjs-adapter-moment';
-import {Axes} from "../axes";
-import {TooltipItem} from 'chart.js';
+import {transactionHistoryService } from "../transactionHistoryService.service"
+//todo: add service import
+
 import {ChartTransaction} from "../model/chartTransaction";
 
 
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.css']
+  styleUrls: ['./line-chart.component.css'],
+  providers: [transactionHistoryService]
+  //todo: add a provider
 })
 export class LineChartComponent {
   chart!: Chart;
@@ -21,7 +24,7 @@ export class LineChartComponent {
   minQuantity: any [] = [];
   finalQuant: any [] = [];
 
-  constructor(private Http: HttpClient) {
+  constructor(private Http: HttpClient, private transactionHistory : transactionHistoryService) { // todo: private transaction-history service: transaction-history-service
 
   }
 
@@ -30,9 +33,11 @@ export class LineChartComponent {
   }
 
   intializeData() {
-
-    this.Http.get('../../assets/json/jaishri_data_minmax.json', {responseType: 'text'})
+    this.transactionHistory.getTransactionHistory()
       .subscribe(resp => {
+        console.log(resp);
+      })
+      /*.subscribe(resp => {
         this.jsonDataResult = JSON.parse(resp);
         var onHandVal = this.jsonDataResult[0].on_hand;
         this.jsonDataResult.sort((a,b) => {
@@ -56,7 +61,7 @@ export class LineChartComponent {
         this.chart.update();
 
 
-      })
+      })*/
   }
 
   quantityChange(onHand: number, package_quant: number, type: number,quantity: number ){
@@ -183,8 +188,7 @@ export class LineChartComponent {
                   }
                   else if(x.type === 3){
                     return 'Reversal ' + x.transactionQuant + ' Adjusted OnHand: ' + x.y;
-                  }
-                  else{
+                  } else{
                     return ' ';
                   }
                 }
