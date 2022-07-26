@@ -35,10 +35,7 @@ export class LineChartComponent {
   intializeData() {
     this.transactionHistory.getTransactionHistory()
       .subscribe(resp => {
-        console.log(resp);
-      })
-      /*.subscribe(resp => {
-        this.jsonDataResult = JSON.parse(resp);
+        this.jsonDataResult = resp;
         var onHandVal = this.jsonDataResult[0].on_hand;
         this.jsonDataResult.sort((a,b) => {
           var datesA = new Date(a.transaction_date).valueOf();
@@ -61,7 +58,7 @@ export class LineChartComponent {
         this.chart.update();
 
 
-      })*/
+      })
   }
 
   quantityChange(onHand: number, package_quant: number, type: number,quantity: number ){
@@ -166,7 +163,8 @@ export class LineChartComponent {
             labels: {
               usePointStyle: true,
               filter: function (legendItem, chartData) {
-                if(chartData.datasets[legendItem.datasetIndex].label === 'Adjusted On hand'){
+                let index = legendItem.datasetIndex;
+                if(index && chartData.datasets[index].label === 'Adjusted On hand'){
                   return false;
                 }else{
                   return true;
