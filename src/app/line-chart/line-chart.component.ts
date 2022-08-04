@@ -18,7 +18,7 @@ import {ChartTransaction} from "../model/chartTransaction";
 })
 export class LineChartComponent {
   chart!: Chart;
-  jsonDataResult: Transactions [] = [];
+  jsonDataResult : Transactions[] = [];
 
   maxQuantity: any [] = [];
   minQuantity: any [] = [];
@@ -35,10 +35,11 @@ export class LineChartComponent {
   intializeData() {
     this.transactionHistory.getTransactionHistory()
       .subscribe(resp => {
-        console.log(resp);
-      })
-      /*.subscribe(resp => {
-        this.jsonDataResult = JSON.parse(resp);
+        //this.jsonDataResult = JSON.parse(JSON.stringify(resp)).recordsets;
+        //var tempRecordSets = resp.recordsets;
+        this.jsonDataResult = resp.recordsets[0];
+
+        console.log(this.jsonDataResult[0]);
         var onHandVal = this.jsonDataResult[0].on_hand;
         this.jsonDataResult.sort((a,b) => {
           var datesA = new Date(a.transaction_date).valueOf();
@@ -46,11 +47,11 @@ export class LineChartComponent {
           return dateB - datesA;
         });
         this.jsonDataResult.forEach(result => {
-          var transObj : ChartTransaction= { x:result.transaction_date, y:onHandVal, type: result.transaction_type, packageQuant:result.mif_package_qty, transactionQuant: result.quantity};
-          onHandVal = this.quantityChange(onHandVal, result.mif_package_qty, result.transaction_type, result.quantity);
+          var transObj : ChartTransaction= { x:result.transaction_date, y:onHandVal, type: result.transaction_type, packageQuant:result.package_qty, transactionQuant: result.quantity};
+          onHandVal = this.quantityChange(onHandVal, result.package_qty, result.transaction_type, result.quantity);
           this.finalQuant.push(transObj);
           var max = {x:result.transaction_date, y:result.max_qty};
-          var min = {x:result.transaction_date, y:result.MIN_QTY};
+          var min = {x:result.transaction_date, y:result.min_qty};
           this.maxQuantity.push(max);
           this.minQuantity.push(min);
         })
@@ -61,7 +62,7 @@ export class LineChartComponent {
         this.chart.update();
 
 
-      })*/
+      })
   }
 
   quantityChange(onHand: number, package_quant: number, type: number,quantity: number ){
@@ -98,7 +99,7 @@ export class LineChartComponent {
                   return '#ACEEAC';
                 }
                 else if(x.type === 0){
-                  return '#1023FE';
+                  return 'pink';
                 }
                 else if(x.type === 3){
                   return '#F3F3B8';
@@ -111,7 +112,7 @@ export class LineChartComponent {
                 return 'black';
               }
               },
-            borderColor: '#A96EAE',
+            borderColor: 'black',
           },
           {
             label: 'Max Value',
@@ -162,6 +163,10 @@ export class LineChartComponent {
       options: {
         responsive: false,
         plugins: {
+          title:{
+            display: true,
+            text: 'DIASTAT 2.5MG PED TWINPK',
+          },
           legend: {
             labels: {
               usePointStyle: true,
